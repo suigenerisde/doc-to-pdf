@@ -1,0 +1,6 @@
+# Custom Fonts
+# Place TTF or OTF font files here.
+# After adding fonts, restart the service:
+#   docker compose restart onlyoffice
+#
+# OnlyOffice will automatically detect and use these fonts.

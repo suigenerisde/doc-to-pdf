@@ -2,10 +2,15 @@ import os
 import subprocess
 import tempfile
 import shutil
+import uuid
+import time
 from pathlib import Path
 from dataclasses import dataclass, field
 
-from app.config import LIBREOFFICE_PATH, CONVERSION_TIMEOUT, TEMP_DIR
+from app.config import CONVERSION_TIMEOUT, TEMP_DIR
+
+SHARED_DIR = os.environ.get("SHARED_DIR", "/shared")
+ONLYOFFICE_HOST = os.environ.get("ONLYOFFICE_HOST", "onlyoffice")
 
 
 class ConversionError(Exception):
@@ -20,6 +25,7 @@ class ConversionResult:
 
 def ensure_temp_dir():
     os.makedirs(TEMP_DIR, exist_ok=True)
+    os.makedirs(SHARED_DIR, exist_ok=True)
 
 
 def convert_docx_to_pdf(
@@ -28,82 +34,88 @@ def convert_docx_to_pdf(
     strip_metadata: bool = False
 ) -> ConversionResult:
     ensure_temp_dir()
-    work_dir = tempfile.mkdtemp(dir=TEMP_DIR)
     warnings: list[str] = []
 
+    # Generate unique ID for this conversion
+    job_id = str(uuid.uuid4())
+    input_filename = f"{job_id}_input.docx"
+    output_filename = f"{job_id}_output.pdf"
+    config_filename = f"{job_id}_config.xml"
+
+    input_path = Path(SHARED_DIR) / input_filename
+    output_path = Path(SHARED_DIR) / output_filename
+    config_path = Path(SHARED_DIR) / config_filename
+
     try:
-        input_path = Path(work_dir) / filename
+        # Write input file to shared volume
         input_path.write_bytes(docx_content)
 
-        # Build conversion command
-        cmd = [
-            LIBREOFFICE_PATH,
-            "--headless",
-            "--convert-to", "pdf",
-            "--outdir", work_dir,
-            str(input_path)
-        ]
+        # Create x2t config XML
+        # Format 513 = PDF
+        config_xml = f"""<?xml version="1.0" encoding="utf-8"?>
+<TaskQueueDataConvert>
+  <m_sFileFrom>/shared/{input_filename}</m_sFileFrom>
+  <m_sFileTo>/shared/{output_filename}</m_sFileTo>
+  <m_nFormatTo>513</m_nFormatTo>
+</TaskQueueDataConvert>
+"""
+        config_path.write_text(config_xml)
 
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            timeout=CONVERSION_TIMEOUT,
-            cwd=work_dir
-        )
+        # Create marker file to trigger conversion
+        marker_path = Path(SHARED_DIR) / f"{job_id}.convert"
+        marker_path.write_text(config_filename)
 
-        stderr_output = result.stderr.decode() if result.stderr else ""
-        stdout_output = result.stdout.decode() if result.stdout else ""
+        # Wait for conversion to complete
+        done_path = Path(SHARED_DIR) / f"{job_id}.done"
+        error_path = Path(SHARED_DIR) / f"{job_id}.error"
 
-        # Check for warnings in output (font substitutions, etc.)
-        if "Warning" in stderr_output or "Warning" in stdout_output:
-            for line in (stderr_output + stdout_output).split("\n"):
-                if "Warning" in line or "font" in line.lower():
-                    warnings.append(line.strip())
+        start_time = time.time()
+        while time.time() - start_time < CONVERSION_TIMEOUT:
+            # Check for done signal or output file
+            if done_path.exists() or output_path.exists():
+                # Give it a moment to finish writing
+                time.sleep(0.5)
+                if output_path.exists():
+                    break
 
-        # Handle non-zero return code with fallback attempt
-        if result.returncode != 0:
-            # Check if PDF was created despite error (fallback)
-            pdf_filename = Path(filename).stem + ".pdf"
-            pdf_path = Path(work_dir) / pdf_filename
+            # Check for error file
+            if error_path.exists():
+                error_msg = error_path.read_text()
+                raise ConversionError(f"OnlyOffice conversion failed: {error_msg}")
 
-            if pdf_path.exists():
-                warnings.append(f"Conversion completed with errors: {stderr_output[:200]}")
-            else:
-                raise ConversionError(
-                    f"LibreOffice conversion failed: {stderr_output}"
-                )
+            time.sleep(0.5)
+        else:
+            raise ConversionError(f"Conversion timed out after {CONVERSION_TIMEOUT} seconds")
 
-        pdf_filename = Path(filename).stem + ".pdf"
-        pdf_path = Path(work_dir) / pdf_filename
-
-        if not pdf_path.exists():
+        if not output_path.exists():
             raise ConversionError("PDF file was not created")
 
-        pdf_content = pdf_path.read_bytes()
+        pdf_content = output_path.read_bytes()
 
         # Strip metadata if requested
         if strip_metadata:
-            pdf_content, meta_warnings = strip_pdf_metadata(pdf_content, work_dir)
-            warnings.extend(meta_warnings)
+            work_dir = tempfile.mkdtemp(dir=TEMP_DIR)
+            try:
+                pdf_content, meta_warnings = strip_pdf_metadata(pdf_content, work_dir)
+                warnings.extend(meta_warnings)
+            finally:
+                shutil.rmtree(work_dir, ignore_errors=True)
 
         return ConversionResult(pdf_content=pdf_content, warnings=warnings)
 
-    except subprocess.TimeoutExpired:
-        raise ConversionError(
-            f"Conversion timed out after {CONVERSION_TIMEOUT} seconds"
-        )
     finally:
-        shutil.rmtree(work_dir, ignore_errors=True)
+        # Cleanup
+        for path in [input_path, output_path, config_path, done_path, error_path, marker_path]:
+            try:
+                path.unlink(missing_ok=True)
+            except:
+                pass
 
 
 def strip_pdf_metadata(pdf_content: bytes, work_dir: str) -> tuple[bytes, list[str]]:
-    """
-    Attempt to strip metadata from PDF using exiftool or pdftk if available.
-    Falls back to original content if tools not available.
-    """
+    """Strip metadata from PDF using exiftool."""
     warnings: list[str] = []
 
-    # Try using exiftool if available
     try:
         pdf_path = Path(work_dir) / "temp_meta.pdf"
         pdf_path.write_bytes(pdf_content)
@@ -128,13 +140,13 @@ def strip_pdf_metadata(pdf_content: bytes, work_dir: str) -> tuple[bytes, list[s
         return pdf_content, warnings
 
 
-def check_libreoffice() -> bool:
+def check_onlyoffice() -> bool:
+    """Check if OnlyOffice is available via shared volume."""
     try:
-        result = subprocess.run(
-            [LIBREOFFICE_PATH, "--version"],
-            capture_output=True,
-            timeout=10
-        )
-        return result.returncode == 0
-    except (subprocess.TimeoutExpired, FileNotFoundError):
+        # Check if shared directory exists and is writable
+        test_file = Path(SHARED_DIR) / ".health_check"
+        test_file.write_text("test")
+        test_file.unlink()
+        return True
+    except:
         return False

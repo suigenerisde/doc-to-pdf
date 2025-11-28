@@ -7,7 +7,7 @@ from fastapi.responses import Response
 from pydantic import BaseModel
 
 from app.config import MAX_FILE_SIZE
-from app.converter import convert_docx_to_pdf, check_libreoffice, ConversionError
+from app.converter import convert_docx_to_pdf, check_onlyoffice, ConversionError
 from app.downloader import download_from_url, read_local_file, DownloadError
 from app.auth import APIKeyMiddleware
 
@@ -38,10 +38,10 @@ class PathConvertRequest(BaseModel):
 
 @app.get("/health")
 async def health():
-    libreoffice_available = check_libreoffice()
+    converter_available = check_onlyoffice()
     return {
-        "status": "ok" if libreoffice_available else "degraded",
-        "libreoffice": "available" if libreoffice_available else "unavailable"
+        "status": "ok" if converter_available else "degraded",
+        "onlyoffice": "available" if converter_available else "unavailable"
     }
 
 
