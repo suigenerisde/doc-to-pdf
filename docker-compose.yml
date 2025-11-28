@@ -1,0 +1,16 @@
+services:
+  doc-to-pdf:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - CONVERSION_TIMEOUT=120
+      - MAX_FILE_SIZE=52428800
+      # - API_KEY=your-secret-key  # Uncomment for production
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped

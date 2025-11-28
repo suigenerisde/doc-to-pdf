@@ -1,0 +1,13 @@
+# Coolify-specific docker-compose
+# Note: Ports are NOT exposed here - Coolify handles routing automatically
+# Environment variables are configured in Coolify UI
+
+services:
+  doc-to-pdf:
+    build: .
+    # NO ports section - Coolify handles this
+    environment:
+      - CONVERSION_TIMEOUT=120
+      - MAX_FILE_SIZE=52428800
+      # API_KEY is set via Coolify UI
+    restart: unless-stopped
