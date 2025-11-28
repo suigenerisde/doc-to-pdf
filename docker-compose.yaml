@@ -11,8 +11,7 @@ services:
     volumes:
       - shared-files:/shared
     depends_on:
-      onlyoffice:
-        condition: service_healthy
+      - onlyoffice
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
