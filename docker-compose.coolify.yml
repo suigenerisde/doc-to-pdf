@@ -1,6 +1,6 @@
 # Coolify-specific docker-compose
 # Note: Ports are NOT exposed here - Coolify handles routing automatically
-# Environment variables are configured in Coolify UI
+# Environment variables can be configured in Coolify UI
 
 services:
   doc-to-pdf:
@@ -9,5 +9,37 @@ services:
     environment:
       - CONVERSION_TIMEOUT=120
       - MAX_FILE_SIZE=52428800
+      - SHARED_DIR=/shared
       # API_KEY is set via Coolify UI
+    volumes:
+      - shared-files:/shared
+    depends_on:
+      onlyoffice:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
     restart: unless-stopped
+
+  onlyoffice:
+    image: onlyoffice/documentserver:latest
+    environment:
+      - JWT_ENABLED=false
+    volumes:
+      - shared-files:/shared
+      - ./onlyoffice-entrypoint.sh:/entrypoint.sh:ro
+      - ./fonts:/usr/share/fonts/truetype/custom-extra:ro
+    entrypoint: ["/bin/bash", "/entrypoint.sh"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/healthcheck"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 90s
+    restart: unless-stopped
+
+volumes:
+  shared-files:
