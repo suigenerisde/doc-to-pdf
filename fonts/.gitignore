@@ -1,4 +1,0 @@
-# Ignore font files (may be proprietary)
-*.ttf
-*.otf
-!.gitkeep
