@@ -3,6 +3,9 @@ services:
     build: .
     expose:
       - "8000"
+    networks:
+      - coolify
+      - default
     environment:
       - CONVERSION_TIMEOUT=120
       - MAX_FILE_SIZE=52428800
@@ -79,3 +82,8 @@ services:
 
 volumes:
   shared-files:
+
+networks:
+  coolify:
+    external: true
+  default:
