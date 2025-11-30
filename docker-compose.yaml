@@ -1,8 +1,8 @@
 services:
   doc-to-pdf:
     build: .
-    # ports:
-    #   - "8000:8000"  # Not needed for Coolify - it handles routing
+    expose:
+      - "8000"
     environment:
       - CONVERSION_TIMEOUT=120
       - MAX_FILE_SIZE=52428800
