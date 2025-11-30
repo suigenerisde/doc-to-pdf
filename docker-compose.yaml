@@ -3,6 +3,8 @@ services:
     build: .
     expose:
       - "8000"
+    labels:
+      - "caddy_0.handle_path.0_reverse_proxy={{upstreams 8000}}"
     networks:
       - coolify
       - default
