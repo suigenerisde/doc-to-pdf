@@ -120,7 +120,7 @@ async def _handle_file_upload(file: UploadFile) -> tuple[bytes, str]:
     if not file.filename.lower().endswith(".docx"):
         raise HTTPException(
             status_code=400,
-            detail="Only .docx files are supported"
+            detail=f"Only .docx files are supported. Received: '{file.filename}'"
         )
 
     content = await file.read()
