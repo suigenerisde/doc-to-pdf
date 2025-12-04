@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>doc-to-pdf Installation auf Hostinger VPS</title>
+    <style>
+        :root {
+            /* Sui Generis Farbpalette */
+            --primary: #1a5a6e;
+            --primary-dark: #0d3d4d;
+            --primary-light: #2d7a8e;
+            --accent-gold: #c9a962;
+            --accent-gold-light: #e0c989;
+            --success: #2d8a6e;
+            --warning: #c9a962;
+            --danger: #c45c5c;
+            --gray-50: #f4f6f7;
+            --gray-100: #e8ecee;
+            --gray-200: #d1d9dc;
+            --gray-300: #b0bec5;
+            --gray-600: #546e7a;
+            --gray-700: #37474f;
+            --gray-800: #1c2e36;
+            --gray-900: #0d1f27;
+            --teal-dark: #0a2e3d;
+            --teal-medium: #1a4a5e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: var(--gray-800);
+            background: var(--gray-50);
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--teal-dark) 0%, var(--teal-medium) 50%, var(--primary) 100%);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(ellipse at 70% 20%, rgba(201, 169, 98, 0.15) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            position: relative;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .header .subtitle {
+            font-size: 1.4rem;
+            color: white;
+            position: relative;
+            font-weight: 400;
+            margin-top: 0.25rem;
+        }
+
+        .header .brand {
+            font-size: 0.95rem;
+            opacity: 0.8;
+            margin-top: 1rem;
+            position: relative;
+            letter-spacing: 1px;
+        }
+
+        /* Navigation */
+        .nav {
+            background: white;
+            border-bottom: 1px solid var(--gray-200);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .nav-inner {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .nav a {
+            color: var(--gray-600);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .nav a:hover {
+            background: var(--gray-100);
+            color: var(--primary);
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Sections */
+        section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            color: var(--gray-900);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        h2 .step-number {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--teal-dark) 100%);
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 4px rgba(10, 46, 61, 0.3);
+        }
+
+        h3 {
+            color: var(--gray-800);
+            font-size: 1.1rem;
+            margin: 1.5rem 0 0.75rem;
+        }
+
+        p {
+            margin-bottom: 1rem;
+            color: var(--gray-700);
+        }
+
+        /* Code Blocks */
+        pre {
+            background: linear-gradient(135deg, var(--teal-dark) 0%, var(--gray-900) 100%);
+            color: #e5e7eb;
+            padding: 1rem 1.25rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1rem 0;
+            position: relative;
+            border-left: 3px solid var(--accent-gold);
+        }
+
+        pre code {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: var(--gray-700);
+            color: white;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: var(--gray-600);
+        }
+
+        .copy-btn.copied {
+            background: var(--success);
+        }
+
+        code:not(pre code) {
+            background: rgba(26, 90, 110, 0.1);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.85em;
+            color: var(--primary-dark);
+            border: 1px solid rgba(26, 90, 110, 0.2);
+        }
+
+        /* Alert Boxes */
+        .alert {
+            padding: 1rem 1.25rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-start;
+        }
+
+        .alert-icon {
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .alert-info {
+            background: rgba(26, 90, 110, 0.08);
+            border-left: 4px solid var(--primary);
+        }
+
+        .alert-warning {
+            background: rgba(201, 169, 98, 0.12);
+            border-left: 4px solid var(--accent-gold);
+        }
+
+        .alert-success {
+            background: rgba(45, 138, 110, 0.1);
+            border-left: 4px solid var(--success);
+        }
+
+        /* Options Tabs */
+        .options {
+            display: flex;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .option-btn {
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--gray-200);
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .option-btn:hover {
+            border-color: var(--primary);
+        }
+
+        .option-btn.active {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--teal-dark) 100%);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .option-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .option-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Lists */
+        ul, ol {
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+            color: var(--gray-700);
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        th, td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        th {
+            background: var(--gray-100);
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+
+        tr:hover td {
+            background: var(--gray-50);
+        }
+
+        /* Checklist */
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+
+        .checklist li {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: var(--gray-50);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .checklist li:hover {
+            background: var(--gray-100);
+        }
+
+        .checklist input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--primary);
+        }
+
+        .checklist li.checked {
+            background: rgba(26, 90, 110, 0.1);
+        }
+
+        .checklist li.checked span {
+            text-decoration: line-through;
+            color: var(--gray-600);
+        }
+
+        /* JSON Block */
+        .json-block {
+            background: var(--teal-dark);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--teal-medium);
+        }
+
+        .json-header {
+            background: linear-gradient(135deg, var(--teal-medium) 0%, var(--primary) 100%);
+            padding: 0.75rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .json-header span {
+            color: rgba(255,255,255,0.9);
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .json-block pre {
+            margin: 0;
+            border-radius: 0;
+            max-height: 300px;
+            border-left: none;
+        }
+
+        /* Footer */
+        .footer {
+            background: linear-gradient(135deg, var(--teal-dark) 0%, var(--teal-medium) 100%);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+
+        .footer-content {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .footer-brand {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-contact {
+            font-size: 0.95rem;
+            opacity: 0.9;
+            margin-bottom: 1rem;
+            line-height: 1.8;
+        }
+
+        .footer-contact a {
+            color: var(--accent-gold-light);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-contact a:hover {
+            color: var(--accent-gold);
+            text-decoration: underline;
+        }
+
+        .footer-divider {
+            width: 60px;
+            height: 2px;
+            background: var(--accent-gold);
+            margin: 1.5rem auto;
+            opacity: 0.6;
+        }
+
+        .footer-copyright {
+            font-size: 0.8rem;
+            opacity: 0.6;
+        }
+
+        /* Print Styles für PDF */
+        @media print {
+            body {
+                background: white;
+            }
+
+            .header {
+                page-break-after: always;
+            }
+
+            .nav {
+                display: none;
+            }
+
+            section {
+                page-break-before: always;
+                page-break-inside: avoid;
+                box-shadow: none;
+                border: 1px solid var(--gray-200);
+            }
+
+            .footer {
+                page-break-before: always;
+            }
+
+            pre {
+                white-space: pre-wrap;
+                word-wrap: break-word;
+            }
+
+            .copy-btn {
+                display: none;
+            }
+
+            .alert {
+                page-break-inside: avoid;
+            }
+
+            .checklist li {
+                page-break-inside: avoid;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.75rem;
+            }
+
+            .nav-inner {
+                gap: 0.5rem;
+            }
+
+            .nav a {
+                padding: 0.4rem 0.75rem;
+                font-size: 0.8rem;
+            }
+
+            section {
+                padding: 1.5rem;
+            }
+
+            .options {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>doc-to-pdf</h1>
+        <p class="subtitle">Installationsanleitung für Hostinger VPS</p>
+        <p class="brand">von SUI GENERIS GmbH</p>
+    </header>
+
+    <nav class="nav">
+        <div class="nav-inner">
+            <a href="#uebersicht">Übersicht</a>
+            <a href="#ssh">SSH</a>
+            <a href="#installation">Installation</a>
+            <a href="#schriftarten">Schriftarten</a>
+            <a href="#api-key">API-Key</a>
+            <a href="#starten">Starten</a>
+            <a href="#n8n">n8n</a>
+            <a href="#troubleshooting">Hilfe</a>
+        </div>
+    </nav>
+
+    <main class="container">
+        <!-- Übersicht -->
+        <section id="uebersicht">
+            <h2>Was ist doc-to-pdf?</h2>
+            <p>doc-to-pdf ist ein Service, der Word-Dokumente (DOCX) in hochwertige PDF-Dateien umwandelt. Die Konvertierung behält alle Formatierungen, Tabellen und Farben exakt bei.</p>
+
+            <h3>Voraussetzungen</h3>
+            <ul>
+                <li>Hostinger VPS mit SSH-Zugang</li>
+                <li>Docker und Docker Compose (auf Hostinger VPS bereits vorinstalliert)</li>
+                <li>n8n läuft auf dem gleichen VPS</li>
+            </ul>
+
+            <h3>Docker prüfen</h3>
+            <p>Nach der SSH-Verbindung können Sie prüfen, ob Docker installiert ist:</p>
+            <pre><code>docker --version</code><button class="copy-btn" onclick="copyCode(this)">Kopieren</button></pre>
+            <p>Falls eine Versionsnummer erscheint (z.B. "Docker version 24.0.7"), ist Docker bereit.</p>
+        </section>
+
+        <!-- Schritt 1: SSH -->
+        <section id="ssh">
+            <h2><span class="step-number">1</span> SSH-Verbindung herstellen</h2>
+            <p>Verbinden Sie sich per SSH mit Ihrem VPS. Die Zugangsdaten finden Sie im Hostinger Dashboard unter <strong>VPS &gt; Zugang</strong>.</p>
+            <pre><code>ssh root@IHRE-SERVER-IP</code><button class="copy-btn" onclick="copyCode(this)">Kopieren</button></pre>
+            <div class="alert alert-info">
+                <span class="alert-icon">&#128161;</span>
+                <span>Ersetzen Sie <code>IHRE-SERVER-IP</code> mit der IP-Adresse Ihres VPS aus dem Hostinger Dashboard.</span>
+            </div>
+            <div class="alert alert-info">
+                <span class="alert-icon">&#128274;</span>
+                <span>Nach dem Befehl werden Sie nach Ihrem Passwort gefragt. <strong>Beim Tippen erscheinen keine Zeichen</strong> - das ist normal! Geben Sie das Passwort blind ein und drücken Sie Enter.</span>
+            </div>
+        </section>
+
+        <!-- Schritt 2: Projektordner -->
+        <section>
+            <h2><span class="step-number">2</span> Projektordner anlegen</h2>
+            <p>Erstellen Sie einen Ordner für doc-to-pdf:</p>
+            <pre><code>mkdir -p /opt/doc-to-pdf
+cd /opt/doc-to-pdf</code><button class="copy-btn" onclick="copyCode(this)">Kopieren</button></pre>
+        </section>
+
+        <!-- Schritt 3: Installation -->
+        <section id="installation">
+            <h2><span class="step-number">3</span> Dateien auf den Server bringen</h2>
+            <p>Wählen Sie eine der folgenden Optionen:</p>
+
+            <div class="options">
+                <button class="option-btn active" onclick="showOption('git')">Option A: Git</button>
+                <button class="option-btn" onclick="showOption('sftp')">Option B: SFTP</button>
+            </div>
+
+            <div id="option-git" class="option-content active">
+                <h3>Per Git (empfohlen)</h3>
+
+                <p><strong>Schritt 1:</strong> Prüfen Sie, ob Git installiert ist:</p>
+                <pre><code>git --version</code><button class="copy-btn" onclick="copyCode(this)">Kopieren</button></pre>
+
+                <p><strong>Schritt 2:</strong> Falls "command not found" erscheint, installieren Sie Git:</p>
+                <pre><code>apt update && apt install git -y</code><button class="copy-btn" onclick="copyCode(this)">Kopieren</button></pre>
+
+                <p><strong>Schritt 3:</strong> Klonen Sie das Repository:</p>
+                <pre><code>git clone https://github.com/suigenerisde/doc-to-pdf.git .</code><button class="copy-btn" onclick="copyCode(this)">Kopieren</button></pre>
+
+                <div class="alert alert-info">
+                    <span class="alert-icon">&#128161;</span>
+                    <span>Der <strong>Punkt am Ende</strong> ist wichtig! Er sorgt dafür, dass die Dateien direkt in den aktuellen Ordner kopiert werden.</span>
+                </div>
+            </div>
+
+            <div id="option-sftp" class="option-content">
+                <h3>Per SFTP hochladen</h3>
+
+                <p><strong>Schritt 1:</strong> Laden Sie zuerst die Dateien von GitHub herunter:</p>
+                <p>Besuchen Sie <a href="https://github.com/suigenerisde/doc-to-pdf" target="_blank" style="color: var(--primary);">github.com/suigenerisde/doc-to-pdf</a> und klicken Sie auf <strong>Code &gt; Download ZIP</strong>.</p>
+
+                <p><strong>Schritt 2:</strong> Entpacken Sie die ZIP-Datei auf Ihrem Computer.</p>
+
+                <p><strong>Schritt 3:</strong> Verbinden Sie sich mit einem SFTP-Programm mit Ihrem Server:</p>
+
+                <div class="alert alert-info">
+                    <span class="alert-icon">&#128187;</span>
+                    <span>
+                        <strong>FileZilla Einstellungen:</strong><br>
+                        Server: <code>IHRE-SERVER-IP</code><br>
+                        Benutzername: <code>root</code><br>
+                        Passwort: <code>Ihr VPS-Passwort</code><br>
+                        Port: <code>22</code>
+                    </span>
+                </div>
+
+                <p><strong>Schritt 4:</strong> Navigieren Sie zum Ordner <code>/opt/doc-to-pdf</code></p>
+
+                <p><strong>Schritt 5:</strong> Laden Sie folgende Dateien hoch:</p>
+                <ul>
+                    <li><code>docker-compose.yaml</code></li>
+                    <li><code>Dockerfile</code></li>
+                    <li><code>requirements.txt</code></li>
+                    <li>Ordner <code>app/</code> (mit allen Dateien darin)</li>
+                    <li>Ordner <code>fonts/</code> (leer oder mit Ihren Schriftarten)</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Schritt 4: Schriftarten -->
+        <section id="schriftarten">
+            <h2><span class="step-number">4</span> Eigene Schriftarten hinzufügen</h2>
+
+            <div class="alert alert-warning">
+                <span class="alert-icon">&#9888;&#65039;</span>
+                <span><strong>Wichtig:</strong> Damit Ihre Dokumente korrekt konvertiert werden, müssen die in Ihren Word-Dateien verwendeten Schriftarten auf dem Server vorhanden sein.</span>
+            </div>
+
+            <h3>So fügen Sie Ihre Firmen-Schriftarten hinzu:</h3>
+            <ol>
+                <li>Sammeln Sie alle benötigten Schriftart-Dateien (TTF oder OTF Format)</li>
+                <li>Kopieren Sie diese in den <code>fonts/</code> Ordner</li>
+            </ol>
+
+            <h3>Per SFTP:</h3>
+            <p>Laden Sie die Schriftart-Dateien in <code>/opt/doc-to-pdf/fonts/</code> hoch</p>
+
+            <h3>Per SCP (Kommandozeile):</h3>
+            <pre><code>scp IhreSchriftart.ttf root@IHRE-SERVER-IP:/opt/doc-to-pdf/fonts/</code><button class="copy-btn" onclick="copyCode(this)">Kopieren</button></pre>
+
+            <h3>Beispiel typischer Firmen-Schriftarten:</h3>
+            <ul>
+                <li><code>FirmenFont-Regular.ttf</code></li>
+                <li><code>FirmenFont-Bold.ttf</code></li>
+                <li><code>FirmenFont-Italic.ttf</code></li>
+            </ul>
+
+            <h3>Wo finde ich meine Schriftart-Dateien?</h3>
+            <div class="alert alert-info">
+                <span class="alert-icon">&#128187;</span>
+                <span>
+                    <strong>Windows:</strong> Öffnen Sie <code>C:\Windows\Fonts</code>. Rechtsklick auf die gewünschte Schriftart &gt; <strong>Dateispeicherort öffnen</strong>. Kopieren Sie die .ttf Datei.<br><br>
+                    <strong>Mac:</strong> Öffnen Sie die App "Schriftsammlung". Rechtsklick auf Schriftart &gt; <strong>Im Finder zeigen</strong>.
+                </span>
+            </div>
+
+            <div class="alert alert-warning">
+                <span class="alert-icon">&#9888;&#65039;</span>
+                <span>Die Schriftarten müssen <strong>vor dem ersten Start</strong> des Services hochgeladen werden. Falls Sie später Schriftarten hinzufügen, führen Sie danach <code>docker compose restart onlyoffice</code> aus und warten Sie 60 Sekunden.</span>
+            </div>
+        </section>
+
+        <!-- Schritt 5: API-Key -->
+        <section id="api-key">
+            <h2><span class="step-number">5</span> API-Key erstellen</h2>
+            <p>Der API-Key schützt Ihren Service vor unbefugtem Zugriff.</p>
+
+            <h3>5.1 Key generieren</h3>
+            <p>Führen Sie diesen Befehl aus, um einen sicheren Key zu erstellen:</p>
+            <pre><code>openssl rand -hex 32</code><button class="copy-btn" onclick="copyCode(this)">Kopieren</button></pre>
+
+            <p>Das Ergebnis sieht etwa so aus:</p>
+            <pre><code>a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456</code></pre>
+
+            <div class="alert alert-warning">
+                <span class="alert-icon">&#9888;&#65039;</span>
+                <span><strong>Wichtig:</strong> Notieren Sie sich diesen Key! Sie benötigen ihn später für n8n.</span>
+            </div>
+
+            <h3>5.2 Key in docker-compose.yaml eintragen</h3>
+            <p>Öffnen Sie die Datei zum Bearbeiten:</p>
+            <pre><code>nano docker-compose.yaml</code><button class="copy-btn" onclick="copyCode(this)">Kopieren</button></pre>
+
+            <p>Suchen Sie diese Zeile (mit Pfeiltasten nach unten scrollen):</p>
+            <pre><code># - API_KEY=your-secret-key  # Uncomment for production</code></pre>
+
+            <p>Ändern Sie sie zu (entfernen Sie das <code>#</code> am Anfang und setzen Sie Ihren Key ein):</p>
+            <pre><code>- API_KEY=IHR-GENERIERTER-KEY</code></pre>
+
+            <div class="alert alert-info">
+                <span class="alert-icon">&#128221;</span>
+                <span>
+                    <strong>nano Editor Kurzanleitung:</strong><br><br>
+                    <strong>1. Navigieren:</strong> Pfeiltasten zum Bewegen<br>
+                    <strong>2. Bearbeiten:</strong> Einfach tippen zum Ändern<br>
+                    <strong>3. Speichern:</strong> <kbd>Strg</kbd> + <kbd>O</kbd> drücken, dann <kbd>Enter</kbd><br>
+                    <strong>4. Beenden:</strong> <kbd>Strg</kbd> + <kbd>X</kbd>
+                </span>
+            </div>
+        </section>
+
+        <!-- Schritt 6: Netzwerk -->
+        <section>
+            <h2><span class="step-number">6</span> Docker-Netzwerk für n8n einrichten</h2>
+            <p>Damit doc-to-pdf mit n8n kommunizieren kann, müssen beide im gleichen Docker-Netzwerk sein.</p>
+
+            <p>Prüfen Sie, ob das Netzwerk existiert:</p>
+            <pre><code>docker network ls | grep n8n</code><button class="copy-btn" onclick="copyCode(this)">Kopieren</button></pre>
+
+            <p>Falls nicht vorhanden, aendern Sie in der <code>docker-compose.yaml</code> den Netzwerk-Abschnitt:</p>
+            <pre><code>networks:
+  n8n-netzwerk:
+    external: true
+  default:</code><button class="copy-btn" onclick="copyCode(this)">Kopieren</button></pre>
+
+            <div class="alert alert-info">
+                <span class="alert-icon">&#128161;</span>
+                <span>Ersetzen Sie <code>n8n-netzwerk</code> mit dem Namen des Netzwerks, in dem Ihr n8n läuft.</span>
+            </div>
+        </section>
+
+        <!-- Schritt 7: Starten -->
+        <section id="starten">
+            <h2><span class="step-number">7</span> Service starten</h2>
+            <p>Starten Sie doc-to-pdf:</p>
+            <pre><code>docker compose up -d</code><button class="copy-btn" onclick="copyCode(this)">Kopieren</button></pre>
+
+            <div class="alert alert-warning">
+                <span class="alert-icon">&#9200;</span>
+                <span>Der erste Start dauert etwa <strong>90 Sekunden</strong>, da OnlyOffice initialisiert werden muss.</span>
+            </div>
+
+            <h3>Status prüfen:</h3>
+            <pre><code>docker compose ps</code><button class="copy-btn" onclick="copyCode(this)">Kopieren</button></pre>
+            <p>Beide Services sollten als "healthy" angezeigt werden.</p>
+
+            <h3>Health-Check:</h3>
+            <pre><code>curl http://localhost:8000/health</code><button class="copy-btn" onclick="copyCode(this)">Kopieren</button></pre>
+
+            <p>Erwartete Antwort:</p>
+            <pre><code>{"status": "ok", "libreoffice": "available"}</code></pre>
+        </section>
+
+        <!-- Schritt 8: n8n -->
+        <section id="n8n">
+            <h2><span class="step-number">8</span> n8n Integration</h2>
+
+            <h3>8.1 HTTP Request Node einrichten</h3>
+            <p>In Ihrem n8n Workflow:</p>
+            <ol>
+                <li>Fügen Sie eine <strong>HTTP Request</strong> Node hinzu</li>
+                <li>Konfigurieren Sie:</li>
+            </ol>
+            <table>
+                <tr><th>Einstellung</th><th>Wert</th></tr>
+                <tr><td>Method</td><td>POST</td></tr>
+                <tr><td>URL</td><td><code>http://doc-to-pdf:8000/convert</code></td></tr>
+                <tr><td>Authentication</td><td>Header Auth</td></tr>
+                <tr><td>Header Name</td><td><code>X-API-Key</code></td></tr>
+                <tr><td>Header Value</td><td>Ihr API-Key</td></tr>
+            </table>
+
+            <h3>8.2 Fertiges Workflow-Template</h3>
+            <p>Kopieren Sie diesen JSON-Code und importieren Sie ihn in n8n:</p>
+
+            <div class="json-block">
+                <div class="json-header">
+                    <span>n8n Workflow JSON</span>
+                    <button class="copy-btn" onclick="copyJson()">Kopieren</button>
+                </div>
+                <pre id="json-content"><code>{
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://doc-to-pdf:8000/convert",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "name": "DOCX zu PDF",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [600, 300]
+    }
+  ]
+}</code></pre>
+            </div>
+
+            <h3>8.3 Credential für API-Key anlegen</h3>
+            <ol>
+                <li>Gehen Sie in n8n zu <strong>Settings &gt; Credentials</strong></li>
+                <li>Klicken Sie auf <strong>Add Credential</strong></li>
+                <li>Wählen Sie <strong>Header Auth</strong></li>
+                <li>Konfigurieren Sie:
+                    <ul>
+                        <li><strong>Name:</strong> doc-to-pdf API Key</li>
+                        <li><strong>Header Name:</strong> X-API-Key</li>
+                        <li><strong>Header Value:</strong> Ihr API-Key</li>
+                    </ul>
+                </li>
+                <li>Speichern Sie das Credential</li>
+                <li>Wählen Sie es in der HTTP Request Node unter "Credential for Header Auth"</li>
+            </ol>
+        </section>
+
+        <!-- Schritt 9: Testen -->
+        <section>
+            <h2><span class="step-number">9</span> Installation testen</h2>
+            <p>Testen Sie die Konvertierung mit einer DOCX-Datei:</p>
+            <pre><code>curl -X POST "http://localhost:8000/convert" \
+  -H "X-API-Key: IHR-API-KEY" \
+  -F "file=@test.docx" \
+  -o test.pdf</code><button class="copy-btn" onclick="copyCode(this)">Kopieren</button></pre>
+
+            <div class="alert alert-success">
+                <span class="alert-icon">&#10004;&#65039;</span>
+                <span>Falls erfolgreich, wird <code>test.pdf</code> erstellt.</span>
+            </div>
+        </section>
+
+        <!-- Troubleshooting -->
+        <section id="troubleshooting">
+            <h2>Troubleshooting</h2>
+
+            <h3>Service-Status prüfen</h3>
+            <pre><code>docker compose ps</code><button class="copy-btn" onclick="copyCode(this)">Kopieren</button></pre>
+
+            <h3>Logs anzeigen</h3>
+            <pre><code>docker compose logs doc-to-pdf
+docker compose logs onlyoffice</code><button class="copy-btn" onclick="copyCode(this)">Kopieren</button></pre>
+
+            <h3>Service neu starten</h3>
+            <pre><code>docker compose restart</code><button class="copy-btn" onclick="copyCode(this)">Kopieren</button></pre>
+
+            <h3>Schriftarten aktualisieren</h3>
+            <p>Nach dem Hinzufügen neuer Schriftarten:</p>
+            <pre><code>docker compose restart onlyoffice</code><button class="copy-btn" onclick="copyCode(this)">Kopieren</button></pre>
+            <p>Warten Sie etwa 60 Sekunden, bis der Font-Cache neu aufgebaut ist.</p>
+
+            <h3>Container komplett neu aufbauen</h3>
+            <pre><code>docker compose down
+docker compose up -d --build</code><button class="copy-btn" onclick="copyCode(this)">Kopieren</button></pre>
+        </section>
+
+        <!-- Befehlsübersicht -->
+        <section>
+            <h2>Befehlsübersicht</h2>
+            <table>
+                <tr><th>Aktion</th><th>Befehl</th></tr>
+                <tr><td>Service starten</td><td><code>docker compose up -d</code></td></tr>
+                <tr><td>Service stoppen</td><td><code>docker compose down</code></td></tr>
+                <tr><td>Status prüfen</td><td><code>docker compose ps</code></td></tr>
+                <tr><td>Logs anzeigen</td><td><code>docker compose logs</code></td></tr>
+                <tr><td>Neu starten</td><td><code>docker compose restart</code></td></tr>
+                <tr><td>Health-Check</td><td><code>curl http://localhost:8000/health</code></td></tr>
+            </table>
+        </section>
+
+        <!-- Checkliste -->
+        <section>
+            <h2>Checkliste vor der ersten Nutzung</h2>
+            <ul class="checklist">
+                <li onclick="toggleCheck(this)"><input type="checkbox"><span>SSH-Zugang funktioniert</span></li>
+                <li onclick="toggleCheck(this)"><input type="checkbox"><span>Alle Dateien sind auf dem Server</span></li>
+                <li onclick="toggleCheck(this)"><input type="checkbox"><span>Eigene Schriftarten sind im fonts/ Ordner</span></li>
+                <li onclick="toggleCheck(this)"><input type="checkbox"><span>API-Key ist in docker-compose.yaml eingetragen</span></li>
+                <li onclick="toggleCheck(this)"><input type="checkbox"><span>API-Key ist notiert für n8n</span></li>
+                <li onclick="toggleCheck(this)"><input type="checkbox"><span>Service ist gestartet und "healthy"</span></li>
+                <li onclick="toggleCheck(this)"><input type="checkbox"><span>n8n Credential ist angelegt</span></li>
+                <li onclick="toggleCheck(this)"><input type="checkbox"><span>Test-Konvertierung war erfolgreich</span></li>
+            </ul>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-brand">SUI GENERIS GmbH</div>
+            <div class="footer-contact">
+                <strong>Thilo Pfeil</strong><br>
+                <a href="tel:+4917126470110">0171 264 70 10</a><br>
+                <a href="mailto:thilo@suigeneris.de">thilo@suigeneris.de</a>
+            </div>
+            <div class="footer-divider"></div>
+            <div class="footer-copyright">
+                doc-to-pdf Installationsanleitung
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Copy code to clipboard
+        function copyCode(btn) {
+            const pre = btn.parentElement;
+            const code = pre.querySelector('code').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                btn.textContent = 'Kopiert!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = 'Kopieren';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        // Copy JSON
+        function copyJson() {
+            const json = document.querySelector('#json-content code').innerText;
+            navigator.clipboard.writeText(json).then(() => {
+                const btn = document.querySelector('.json-block .copy-btn');
+                btn.textContent = 'Kopiert!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = 'Kopieren';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        // Toggle installation options
+        function showOption(option) {
+            document.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.option-content').forEach(content => content.classList.remove('active'));
+
+            event.target.classList.add('active');
+            document.getElementById('option-' + option).classList.add('active');
+        }
+
+        // Toggle checklist items
+        function toggleCheck(li) {
+            const checkbox = li.querySelector('input');
+            checkbox.checked = !checkbox.checked;
+            li.classList.toggle('checked', checkbox.checked);
+        }
+
+        // Smooth scroll for navigation
+        document.querySelectorAll('.nav a').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+    </script>
+</body>
+</html>
